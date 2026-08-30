@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>b1.1_01</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>src_game_java</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC../src/game/java</locationURI>
+		</link>
+		<link>
+			<name>src_lwjgl_java</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC../src/lwjgl/java</locationURI>
+		</link>
+		<link>
+			<name>src_main_java</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC../src/main/java</locationURI>
+		</link>
+		<link>
+			<name>src_teavm_java</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC../src/teavm/java</locationURI>
+		</link>
+		<link>
+			<name>src_teavm_wasm</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC../src/wasm-gc-teavm/java</locationURI>
+		</link>
+	</linkedResources>
+	<variableList>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-3-PROJECT_LOC%7D/Beta remake</value>
+		</variable>
+	</variableList>
+</projectDescription>

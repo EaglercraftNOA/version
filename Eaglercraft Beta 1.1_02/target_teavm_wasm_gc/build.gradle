@@ -1,0 +1,54 @@
+import org.teavm.gradle.api.OptimizationLevel
+import org.teavm.gradle.api.WasmDebugInfoLocation
+import org.teavm.gradle.api.WasmDebugInfoLevel
+
+plugins {
+    id "java"
+    id "eclipse"
+    id "org.teavm" version "0.12.1-EAGLER-R3"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs(
+                "../src/main/java",
+                "../src/game/java",
+                "../src/wasm-gc-teavm/java"
+            )
+        }
+    }
+    
+}
+
+repositories {
+    maven {
+        url = uri("https://eaglercraft-teavm-fork.github.io/maven/")
+    }
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly "org.teavm:teavm-core:0.12.1-EAGLER-R3" // workaround for a few hacks
+}
+
+def folder = "javascript"
+def name = "classes.wasm"
+
+teavm.wasmGC {
+    compileJava.options.encoding = "UTF-8"
+    targetFileName = "../" + name
+    optimization = OptimizationLevel.AGGRESSIVE //AGGRESSIVE crashes
+    outOfProcess = false
+    fastGlobalAnalysis = false
+    processMemory = 512
+    mainClass = "net.lax1dude.eaglercraft.internal.wasm_gc_teavm.MainClass"
+    outputDir = file(folder)
+    properties = [ "java.util.TimeZone.autodetect": "true" ]
+    debugInformation = true
+    debugInfoLocation = WasmDebugInfoLocation.EXTERNAL;
+    debugInfoLevel = WasmDebugInfoLevel.DEOBFUSCATION;
+    minDirectBuffersSize = 32
+    maxDirectBuffersSize = 512
+    disassembly = true
+}

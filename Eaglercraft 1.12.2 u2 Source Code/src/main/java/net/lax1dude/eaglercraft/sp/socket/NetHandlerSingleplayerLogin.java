@@ -1,0 +1,93 @@
+package net.lax1dude.eaglercraft.sp.socket;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import io.netty.buffer.Unpooled;
+import net.lax1dude.eaglercraft.socket.protocol.GamePluginMessageConstants;
+import net.lax1dude.eaglercraft.socket.protocol.GamePluginMessageProtocol;
+import net.lax1dude.eaglercraft.socket.protocol.client.GameProtocolMessageController;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiDisconnected;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.network.EnumConnectionState;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.login.INetHandlerLoginClient;
+import net.minecraft.network.login.server.SPacketDisconnect;
+import net.minecraft.network.login.server.SPacketEncryptionRequest;
+import net.minecraft.network.login.server.SPacketLoginSuccess;
+import net.minecraft.network.login.server.SPacketEnableCompression;
+import net.minecraft.network.play.client.CPacketCustomPayload;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
+
+/**
+ * Copyright (c) 2023-2024 lax1dude. All Rights Reserved.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * 
+ */
+public class NetHandlerSingleplayerLogin implements INetHandlerLoginClient {
+
+	private final Minecraft mc;
+	private final GuiScreen previousGuiScreen;
+	private final NetworkManager networkManager;
+
+	private static final Logger logger = LogManager.getLogger("NetHandlerSingleplayerLogin");
+
+	public NetHandlerSingleplayerLogin(NetworkManager parNetworkManager, Minecraft mcIn, GuiScreen parGuiScreen) {
+		this.networkManager = parNetworkManager;
+		this.mc = mcIn;
+		this.previousGuiScreen = parGuiScreen;
+	}
+
+	@Override
+	public void onDisconnect(ITextComponent var1) {
+		this.mc.displayGuiScreen(new GuiDisconnected(this.previousGuiScreen, "connect.failed", var1));
+	}
+
+	@Override
+	public void handleEncryptionRequest(SPacketEncryptionRequest var1) {
+		
+	}
+
+	@Override
+	public void handleLoginSuccess(SPacketLoginSuccess var1) {
+		this.networkManager.setConnectionState(EnumConnectionState.PLAY);
+		int p = var1.getSelectedProtocol();
+		GamePluginMessageProtocol mp = GamePluginMessageProtocol.getByVersion(p);
+		if(mp == null) {
+			this.networkManager.closeChannel(new TextComponentString("Unknown protocol selected: " + p));
+			return;
+		}
+		logger.info("Server is using protocol: {}", p);
+		NetHandlerPlayClient netHandler = new NetHandlerPlayClient(this.mc, this.previousGuiScreen, this.networkManager, var1.getProfile());
+		netHandler.setEaglerMessageController(
+				new GameProtocolMessageController(mp, GamePluginMessageConstants.CLIENT_TO_SERVER,
+						GameProtocolMessageController.createClientHandler(p, netHandler),
+						(ch, msg) -> netHandler.sendPacket(new CPacketCustomPayload(ch, msg))));
+		this.networkManager.setNetHandler(netHandler);
+	}
+
+	@Override
+	public void handleDisconnect(SPacketDisconnect var1) {
+		networkManager.closeChannel(var1.getReason());
+	}
+
+	@Override
+	public void handleEnableCompression(SPacketEnableCompression var1) {
+		
+	}
+
+}

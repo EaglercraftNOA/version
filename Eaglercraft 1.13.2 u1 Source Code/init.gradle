@@ -1,0 +1,8 @@
+allprojects {
+	afterEvaluate {
+		tasks.withType(JavaCompile).all { t ->
+			t.options.setFork(true)
+			t.options.forkOptions.setJvmArgs(["-Xmx4G"])
+		}
+	}
+}

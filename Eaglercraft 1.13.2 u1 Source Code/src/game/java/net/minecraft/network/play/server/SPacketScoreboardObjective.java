@@ -1,0 +1,72 @@
+package net.minecraft.network.play.server;
+
+import java.io.IOException;
+import net.minecraft.network.Packet;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.play.INetHandlerPlayClient;
+import net.minecraft.scoreboard.ScoreCriteria;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+
+public class SPacketScoreboardObjective implements Packet<INetHandlerPlayClient> {
+   private String objectiveName;
+   private ITextComponent displayName;
+   private ScoreCriteria.RenderType renderType;
+   private int action;
+
+   public SPacketScoreboardObjective() {
+   }
+
+   public SPacketScoreboardObjective(ScoreObjective objective, int actionIn) {
+      this.objectiveName = objective.getName();
+      this.displayName = objective.getDisplayName();
+      this.renderType = objective.getRenderType();
+      this.action = actionIn;
+   }
+
+   public void readPacketData(PacketBuffer buf) throws IOException {
+      this.objectiveName = buf.readString(16);
+      this.action = buf.readByte();
+      if (this.action == 0 || this.action == 2) {
+         this.displayName = buf.readTextComponent();
+         this.renderType = buf.readEnumValue(ScoreCriteria.RenderType.class);
+      }
+
+   }
+
+   public void writePacketData(PacketBuffer buf) throws IOException {
+      buf.writeString(this.objectiveName);
+      buf.writeByte(this.action);
+      if (this.action == 0 || this.action == 2) {
+         buf.writeTextComponent(this.displayName);
+         buf.writeEnumValue(this.renderType);
+      }
+
+   }
+
+   public void processPacket(INetHandlerPlayClient handler) {
+      handler.handleScoreboardObjective(this);
+   }
+
+   @OnlyIn(Dist.CLIENT)
+   public String getObjectiveName() {
+      return this.objectiveName;
+   }
+
+   @OnlyIn(Dist.CLIENT)
+   public ITextComponent getDisplayName() {
+      return this.displayName;
+   }
+
+   @OnlyIn(Dist.CLIENT)
+   public int getAction() {
+      return this.action;
+   }
+
+   @OnlyIn(Dist.CLIENT)
+   public ScoreCriteria.RenderType getRenderType() {
+      return this.renderType;
+   }
+}
